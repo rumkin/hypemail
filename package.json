@@ -1,0 +1,17 @@
+{
+  "name":"hypemail",
+  "version":"0.1.0",
+  "description": "SMTP server example",
+  "private": true,
+  "main": "build/index.js",
+  "license": "MIT",
+  "dependencies": {
+    "colors": "^1.1.2",
+    "commander": "^2.9.0",
+    "mailparser": "^0.6.1",
+    "nodemailer": "^2.6.4",
+    "singular": "^2.4.0",
+    "smtp-server": "^1.16.1",
+    "ws": "^1.1.1"
+  }
+}
