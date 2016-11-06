@@ -15,7 +15,8 @@ function mailServer(config_ = {}, logger) {
         port: 25,
     }, config_);
 
-    const PORT = config.port;
+    const PORT = config.port || 25;
+    const HOST = config.host || '0.0.0.0';
     const server = new SMTPServer(Object.assign(config, {
         onData(stream, session, callback) {
             let parser = new MailParser();
@@ -29,8 +30,8 @@ function mailServer(config_ = {}, logger) {
         },
     }));
 
-    server.listen(PORT, () => {
-        logger.info('Mail server started at localhost:%s', PORT);
+    server.listen(PORT, HOST, () => {
+        logger.info('Mail server started at %s:%s', HOST, PORT);
     });
 
     return server;
@@ -64,7 +65,7 @@ function webSocketServer(config_ = {}, logger) {
     return wss;
 }
 
-function hypemail(ms, wss, mailer, logger) {
+function hypemail(config, ms, wss, mailer, logger) {
     let sockets = new Map();
 
     ms.on('mail', (mail) => {
@@ -83,12 +84,15 @@ function hypemail(ms, wss, mailer, logger) {
 
             sock.send(JSON.stringify({type: 'email', value: mail}, null, 4));
 
+            let messageId = (Date.now()) + '.' + crypto.randomBytes(8).toString('hex')
+                + '@' + config.host;
+
             mailer.sendMail({
                 to: mail.from[0],
                 from: mail.to[0],
                 subject: mail.subject,
                 inReplyTo: mail.messageId,
-                messageId: (Date.now()) + '.' + crypto.randomBytes(8).toString('hex') + '@hm.rumk.in',
+                messageId,
                 text: 'Hypemail received your email. Thanks!',
             }, (err, info) => {
                 if (err) {
@@ -140,12 +144,27 @@ if (module.parent) {
     return;
 }
 
+const {SSL_CERT, SSL_KEY, SMTP_PORT, SMTP_HOST} = process.env;
+const HOST = process.env.HOST || process.argv[2] || process.env.HOSTNAME;
+let sslKey, sslCert;
+
 const logger = new Logger({
     level: 'debug',
 });
 
+if (SSL_CERT || SSL_KEY) {
+    logger.info('Use SSL\nkey: %s\ncert %s', SSL_KEY, SSL_CERT);
+    sslCert = fs.readFileSync(SSL_CERT);
+    sslKey = fs.readFileSync(SSL_KEY);
+}
+
 const mail = mailServer({
     authOptional: true,
+    cert: sslCert,
+    key: sslKey,
+    allowInsecureAuth: true,
+    port: SMTP_PORT || 0,
+    host: SMTP_HOST || HOST,
 }, logger);
 
 
@@ -155,4 +174,6 @@ const wss = webSocketServer({
 
 const mailer = nodeMailer();
 
-hypemail(mail, wss, mailer, logger);
+hypemail({
+    host: HOST,
+}, mail, wss, mailer, logger);
