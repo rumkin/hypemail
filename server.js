@@ -9,8 +9,9 @@ const NodeMailer = require('nodemailer');
 const WebSocketServer = require('ws').Server;
 const Logger = require('./lib/logger.js');
 const crypto = require('crypto');
+const Spamc = require('spamc-stream');
 
-function mailServer(config_ = {}, logger) {
+function mailServer(config_ = {}, spamc, logger) {
     const config = Object.assign({
         port: 25,
     }, config_);
@@ -19,14 +20,49 @@ function mailServer(config_ = {}, logger) {
     const HOST = config.host || '0.0.0.0';
     const server = new SMTPServer(Object.assign(config, {
         onData(stream, session, callback) {
+            logger.debug('data');
             let parser = new MailParser();
+            let reporter = spamc.report();
+            let email, report, hasError;
+
+            let onEnd = () => {
+                if (! email || ! report) {
+                   return;
+                }
+
+                if (hasError) {
+                    return;
+                }
+
+                email.spamReport = report;
+                server.emit('mail', email);
+                callback();
+            };
+
+            let onError= (error) => {
+                logger.error(error);
+                if (hasError) {
+                    return;
+                }
+
+                hasError = true;
+                callback(error);
+            };
 
             stream.pipe(parser);
-            parser.on('end', (mail) => {
-                server.emit('mail', mail);
-                callback();
+            stream.pipe(reporter);
+
+            parser.on('end', (result) => {
+                email = result;
+                onEnd();
             });
-            parser.on('error', callback);
+            parser.on('error', onError);
+
+            reporter.on('report', (result) => {
+                report = result;
+                onEnd();
+            });
+            reporter.on('error', onError);
         },
     }));
 
@@ -36,6 +72,10 @@ function mailServer(config_ = {}, logger) {
 
     return server;
 };
+
+function spamcClient() {
+    return new Spamc();
+}
 
 function webSocketServer(config_ = {}, logger) {
     const config = Object.assign({
@@ -158,6 +198,8 @@ if (SSL_CERT || SSL_KEY) {
     sslKey = fs.readFileSync(SSL_KEY);
 }
 
+const spamc = spamcClient();
+
 const mail = mailServer({
     authOptional: true,
     cert: sslCert,
@@ -165,7 +207,7 @@ const mail = mailServer({
     allowInsecureAuth: true,
     port: SMTP_PORT || 0,
     host: SMTP_HOST || HOST,
-}, logger);
+}, spamc, logger);
 
 
 const wss = webSocketServer({

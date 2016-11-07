@@ -1,6 +1,6 @@
 {
-  "name":"hypemail",
-  "version":"0.1.0",
+  "name": "hypemail",
+  "version": "0.1.0",
   "description": "SMTP server example",
   "private": true,
   "main": "build/index.js",
@@ -12,6 +12,7 @@
     "nodemailer": "^2.6.4",
     "singular": "^2.4.0",
     "smtp-server": "^1.16.1",
+    "spamc-stream": "^1.0.2",
     "ws": "^1.1.1"
   }
 }

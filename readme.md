@@ -42,6 +42,27 @@ Parsed email looks like that:
         }
     ],
     "date": "2016-11-05T03:22:23.000Z",
-    "receivedDate": "2016-11-05T03:22:23.000Z"
+    "receivedDate": "2016-11-05T03:22:23.000Z",
+    "spamReport": {
+        "responseCode": 0,
+        "responseMessage": "EX_OK",
+        "isSpam": false,
+        "spamScore": 1.7,
+        "baseSpamScore": 5,
+        "report": [
+            {
+                "score": "0.0",
+                "name": "HTML_MESSAGE",
+                "description": "BODY",
+                "type": "HTML"
+            },
+            {
+                "score": "1.1",
+                "name": "MIME_HTML_ONLY",
+                "description": "BODY",
+                "type": "Message"
+            }
+        ]
+    }
 }
 ```
