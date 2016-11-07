@@ -23,23 +23,9 @@ function mailServer(config_ = {}, spamc, logger) {
             logger.debug('data');
             let parser = new MailParser();
             let reporter = spamc.report();
-            let email, report, hasError;
+            let report, hasError;
 
-            let onEnd = () => {
-                if (! email || ! report) {
-                   return;
-                }
-
-                if (hasError) {
-                    return;
-                }
-
-                email.spamReport = report;
-                server.emit('mail', email);
-                callback();
-            };
-
-            let onError= (error) => {
+            let onError = (error) => {
                 logger.error(error);
                 if (hasError) {
                     return;
@@ -49,19 +35,19 @@ function mailServer(config_ = {}, spamc, logger) {
                 callback(error);
             };
 
-            stream.pipe(parser);
-            stream.pipe(reporter);
-
-            parser.on('end', (result) => {
-                email = result;
-                onEnd();
+            parser.on('end', (email) => {
+                email.spamReport = report;
+                server.emit('mail', email);
+                callback();
             });
-            parser.on('error', onError);
 
             reporter.on('report', (result) => {
                 report = result;
-                onEnd();
             });
+
+            stream.pipe(reporter).pipe(parser);
+            strema.on('error', onError);
+            parser.on('error', onError);
             reporter.on('error', onError);
         },
     }));
