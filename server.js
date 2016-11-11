@@ -46,7 +46,7 @@ function mailServer(config_ = {}, spamc, logger) {
             });
 
             stream.pipe(reporter).pipe(parser);
-            strema.on('error', onError);
+            stream.on('error', onError);
             parser.on('error', onError);
             reporter.on('error', onError);
         },

@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>Hypemail</title>
+    <link rel="icon" href="/favico.png">
     <style>
         html {
         min-height: 100%;
@@ -129,6 +130,7 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.15/clipboard.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/favico.js/0.3.10/favico.min.js"></script>
     <script>
     //https://github.com/jeromegn/Backbone.localStorage/blob/master/backbone.localStorage.js#L27
     // Generate four random hex digits.
@@ -154,6 +156,19 @@
     clipboard.on('success', (e) => {
       e.clearSelection();
     });
+
+    let i = 0;
+    let favicon = new Favico({
+        type : 'rectangle',
+        animation: 'slide',
+    });
+    favicon.badge(0);
+
+    $(window).on('focus', (e) => {
+        i = 0;
+        favicon.badge(0);
+    });
+
 
     let id = guid2();
     let key = guid12();
@@ -183,6 +198,7 @@
           return;
         }
 
+        favicon.badge(++i);
         $('.output code').text(JSON.stringify(data.value, null, 4));
       };
 
