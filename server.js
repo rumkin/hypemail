@@ -95,9 +95,16 @@ function hypemail(config, ms, wss, mailer, logger) {
     let sockets = new Map();
 
     ms.on('mail', (mail) => {
-        logger.debug('Mail to %s', mail.to[0].address);
+        let to = mail.to;
 
-        for (let recepient of mail.to) {
+        if (! Array.isArray(to) || ! to.length) {
+            logger.warning('Invalid letter', mail);
+            return;
+        }
+
+        logger.debug('Mail to %s', to[0].address);
+
+        for (let recepient of to) {
             let [mailbox] = recepient.address.split('@');
 
             if (! sockets.has(mailbox)) {
