@@ -120,13 +120,26 @@ function hypemail(config, ms, wss, mailer, logger) {
             let messageId = (Date.now()) + '.' + crypto.randomBytes(8).toString('hex')
                 + '@' + config.host;
 
+            let receiver;
+            if (mail.replyTo && mail.replyTo.length) {
+                receiver = mail.replyTo;
+            }
+            else {
+                receiver = mail.from[0].address;
+            }
+
             mailer.sendMail({
-                to: mail.from[0],
-                from: mail.to[0],
-                subject: mail.subject,
+                to: receiver,
+                from: to[0],
+                subject: 'Auto: ' + mail.subject,
                 inReplyTo: mail.messageId,
+                references: [mail.messageId],
+                replyTo: to[0].address,
                 messageId,
-                text: 'Hypemail received your email. Thanks!',
+                text: 'Hypemail received your message. Thanks!',
+                headers: [{
+                    'Auto-Submitted': 'auto-reply',
+                }],
             }, (err, info) => {
                 if (err) {
                     logger.error(err);
@@ -149,7 +162,7 @@ function hypemail(config, ms, wss, mailer, logger) {
             return;
         }
 
-        if (sockets.has(id) && socket.get(id).key !== key) {
+        if (sockets.has(id) && sockets.get(id).key !== key) {
             sock.close();
             return;
         }
@@ -197,7 +210,6 @@ const mail = mailServer({
     authOptional: true,
     cert: sslCert,
     key: sslKey,
-    allowInsecureAuth: true,
     port: SMTP_PORT || 0,
     host: SMTP_HOST || HOST,
 }, spamc, logger);
