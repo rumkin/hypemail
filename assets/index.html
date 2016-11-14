@@ -108,13 +108,26 @@
         color: #39f;
         }
 
+        .pageHead-star {
+            text-align: right;
+        }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/grd/1.2.3/grd.css"/>
   </head>
   <body>
     <div class="page">
       <heading class="pageHead">
-        <h1 class="pageHead-header">Hypemail</h1>
-        <p class="pageHead-lead">Receive email as a JSON object right in the browser. Get source code on  <a href="https://github.com/rumkin/hypemail">Github</a>.</p>
+        <header class="Grid">
+            <div class="Cell -9of12">
+                <h1 class="pageHead-header">Hypemail</h1>
+                <p class="pageHead-lead">Receive email as a JSON object right in the browser.</p>
+            </div>
+            <div class="Cell -3of12 pageHead-star">
+                <p>
+                    <iframe src="https://ghbtns.com/github-btn.html?user=rumkin&repo=hypemail&type=star&count=false&size=large" frameborder="0" scrolling="0" width="76px" height="30px"></iframe>
+                </p>
+            </div>
+        </header>
         <hr/>
       </heading>
       <div class="alert alert-info">Send email to temporary address <strong id="email"><span id="clientId">123</span>@hm.rumk.in</strong>
