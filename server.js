@@ -98,7 +98,7 @@ function hypemail(config, ms, wss, mailer, logger) {
         let to = mail.to;
 
         if (! Array.isArray(to) || ! to.length) {
-            logger.warning('Invalid letter', mail);
+            logger.warn('Invalid letter', mail);
             return;
         }
 
