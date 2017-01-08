@@ -56,6 +56,10 @@ function mailServer(config_ = {}, spamc, logger) {
         logger.info('Mail server started at %s:%s', HOST, PORT);
     });
 
+    server.on('error', (error) => {
+        logger.error('SMTP error', error);
+    });
+
     return server;
 };
 
@@ -86,6 +90,10 @@ function webSocketServer(config_ = {}, logger) {
         if (isFile && fs.existsSync(PORT)) {
             fs.chmod(PORT, 0x775);
         }
+    });
+
+    server.on('error', (error) => {
+        logger.error('WSS Error', error);
     });
 
     return wss;
