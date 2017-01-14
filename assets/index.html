@@ -130,21 +130,69 @@
         </header>
         <hr/>
       </heading>
-      <div class="alert alert-info">Send email to temporary address <strong id="email"><span id="clientId">123</span>@hm.rumk.in</strong>
+      <div class="alert alert-info">Send email to temporary address <strong id="email"><span js:var="id"></span>@hm.rumk.in</strong>
         <button id="copyEmail" data-clipboard-target="#email" class="btn">Copy</button> and see it as json below.
       </div>
-      <pre class="output"><code></code></pre>
+      <div>
+          <p>Status: <span js:var="status"></span></p>
+      </div>
+      <pre class="output"><code js:var="output"></code></pre>
       <hr/>
       <footer>
-        <p><a href="http://rumk.in/">Rumkin</a>, 2016.
+        <p><a href="http://rumk.in/">Rumkin</a>, 2017.
           Build with npm modules <a href="https://www.npmjs.com/package/mailparser">mailparser</a> and <a href="https://www.npmjs.com/package/smtp-server">smtp-server</a>.
         </p>
       </footer>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.15/clipboard.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/favico.js/0.3.10/favico.min.js"></script>
     <script>
+        function selectValues(target, path) {
+         if (! Array.isArray(path)) {
+           throw new Error('Path should be an array');
+         }
+
+         var part;
+         var result = [];
+         var value = target;
+
+         if (! value || typeof value !== 'object') {
+           return result;
+         }
+
+         for (var i = 0, l = path.length; i < l; i++) {
+           part = path[i];
+
+
+           if (! value.hasOwnProperty(part)) {
+             break;
+           }
+
+           result.push(value[part]);
+
+           value = value[part];
+         }
+
+         return result;
+       }
+
+       function jsvars(element, scope) {
+           var elements = Array.from(element.querySelectorAll('[js\\:var]'));
+
+           elements.forEach(function(el) {
+              var path = el.getAttribute('js:var').split('.');
+              var values = selectValues(scope, path);
+
+              var value = values[path.length - 1];
+
+              if (value === undefined) {
+                  value = '';
+              }
+
+              el.textContent = value;
+           });
+       }
+
     //https://github.com/jeromegn/Backbone.localStorage/blob/master/backbone.localStorage.js#L27
     // Generate four random hex digits.
     function S4() {
@@ -175,20 +223,35 @@
         type : 'rectangle',
         animation: 'slide',
     });
+
     favicon.badge(0);
 
-    $(window).on('focus', (e) => {
+    window.addEventListener('focus', () => {
         i = 0;
         favicon.badge(0);
     });
 
+    let state = {
+        id: '',
+        status: 'disconnected',
+        output: '',
+    };
+
+    function redraw() {
+        jsvars(document.body, state);
+    }
+
 
     let id = guid2();
     let key = guid12();
-    $('#clientId').text(id);
+
+    state.id = id;
+    redraw();
 
     let ws = connect(id);
     function onClose() {
+        state.status = 'disconnected';
+        redraw();
       console.log('closed');
       setTimeout(() => {
         ws = connect(id);
@@ -200,6 +263,8 @@
 
       socket.onopen = function() {
         console.log('opened');
+        state.status = 'connected';
+        redraw();
       };
 
       socket.onmessage = function(e) {
@@ -212,7 +277,9 @@
         }
 
         favicon.badge(++i);
-        $('.output code').text(JSON.stringify(data.value, null, 4));
+
+        state.output = JSON.stringify(data.value, null, 4);
+        redraw();
       };
 
       socket.onclose = onClose;
